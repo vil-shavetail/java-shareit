@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class InMemoryUserService implements UserService{
+public class InMemoryUserService implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
