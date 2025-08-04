@@ -27,7 +27,10 @@ public class InMemoryItemService implements ItemService {
     @Override
     public ItemDto createItem(ItemDto itemDto, Long ownerId) {
         log.info("Creating a thing. Input data:  {}, ID owner: {}", itemDto, ownerId);
-        userRepository.existsById(ownerId);
+        if(!userRepository.existsById(ownerId)) {
+            log.warn("An attempt to create a new item by non-existing user with id: {} failed.",  ownerId);
+            throw new NotFoundException("User with id: " + ownerId + "not found");
+        }
         Item item = itemMapper.toEntity(itemDto, ownerId);
         ItemDto createdItem = itemMapper.toDto(itemRepository.save(item));
         log.info("A new item has been created: {}", createdItem);
