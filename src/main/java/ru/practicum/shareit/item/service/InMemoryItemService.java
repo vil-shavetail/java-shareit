@@ -27,7 +27,7 @@ public class InMemoryItemService implements ItemService {
     @Override
     public ItemDto createItem(ItemDto itemDto, Long ownerId) {
         log.info("Creating a thing. Input data:  {}, ID owner: {}", itemDto, ownerId);
-        if(!userRepository.existsById(ownerId)) {
+        if (!userRepository.existsById(ownerId)) {
             log.warn("An attempt to create a new item by non-existing user with id: {} failed.",  ownerId);
             throw new NotFoundException("User with id: " + ownerId + "not found");
         }
