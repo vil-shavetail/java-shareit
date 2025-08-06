@@ -16,19 +16,20 @@ import java.util.List;
 @RequestMapping("/items")
 @RequiredArgsConstructor
 public class ItemController {
+    public static final String X_SHARER_USER_ID = "X-Sharer-User-Id";
     private final ItemService itemService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ItemDto createItem(
-            @RequestHeader("X-Sharer-User-Id") Long ownerId,
+            @RequestHeader(X_SHARER_USER_ID) Long ownerId,
             @Valid @RequestBody ItemDto itemDto) {
         return itemService.createItem(itemDto, ownerId);
     }
 
     @PatchMapping("/{itemId}")
     public ItemDto updateItem(
-            @RequestHeader("X-Sharer-User-Id") Long ownerId,
+            @RequestHeader(X_SHARER_USER_ID) Long ownerId,
             @PathVariable Long itemId,
             @RequestBody ItemDto itemDto) {
         return itemService.updateItem(itemId, itemDto, ownerId);
@@ -41,7 +42,7 @@ public class ItemController {
 
     @GetMapping
     public List<ItemDto> getAllUserItems(
-            @RequestHeader("X-Sharer-User-Id") Long ownerId) {
+            @RequestHeader(X_SHARER_USER_ID) Long ownerId) {
         return itemService.getAllUserItems(ownerId);
     }
 

@@ -35,4 +35,10 @@ public class GlobalExceptionHandler {
     public Map<String, String> handleValidationException(final MethodArgumentNotValidException e) {
         return Map.of(errorString, e.getMessage());
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleThrowable(final Throwable e) {
+        return Map.of(errorString, e.getMessage());
+    }
 }
