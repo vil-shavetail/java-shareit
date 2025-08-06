@@ -18,13 +18,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class InMemoryUserService implements UserService {
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
 
     @Override
     public UserDto createUser(UserDto userDto) {
         log.info("Creating a user. Input data: {}", userDto);
-        User user = userMapper.toEntity(userDto);
-        UserDto createdUser = userMapper.toDto(userRepository.save(user));
+        User user = UserMapper.toEntity(userDto);
+        UserDto createdUser = UserMapper.toDto(userRepository.save(user));
         log.info("The user was successfully created: {}", createdUser);
         return createdUser;
     }
@@ -46,7 +45,7 @@ public class InMemoryUserService implements UserService {
 
         existingUser.setName(userDto.getName());
         existingUser.setEmail(userDto.getEmail());
-        UserDto updatedUser = userMapper.toDto(userRepository.save(existingUser));
+        UserDto updatedUser = UserMapper.toDto(userRepository.save(existingUser));
         log.info("The user has been updated: {}", updatedUser);
         return updatedUser;
     }
@@ -55,7 +54,7 @@ public class InMemoryUserService implements UserService {
     public UserDto getUserById(Long id) {
         log.info("User request by ID: {}", id);
         UserDto user = userRepository.findById(id)
-                .map(userMapper::toDto)
+                .map(UserMapper::toDto)
                 .orElseThrow(() -> {
                     log.warn("A non-existent user was requested, ID: {}", id);
                     return new NotFoundException("User not found with id: " + id);
@@ -68,7 +67,7 @@ public class InMemoryUserService implements UserService {
     public List<UserDto> getAllUsers() {
         log.info("Request for all users");
         List<UserDto> users = userRepository.findAll().stream()
-                .map(userMapper::toDto)
+                .map(UserMapper::toDto)
                 .collect(Collectors.toList());
         log.info("Users found: {}", users.size());
         return users;

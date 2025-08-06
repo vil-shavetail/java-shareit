@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class InMemoryItemService implements ItemService {
     private final ItemRepository itemRepository;
-    private final ItemMapper itemMapper;
     private final UserRepository userRepository;
 
     @Override
@@ -31,8 +30,8 @@ public class InMemoryItemService implements ItemService {
             log.warn("An attempt to create a new item by non-existing user with id: {} failed.",  ownerId);
             throw new NotFoundException("User with id: " + ownerId + "not found");
         }
-        Item item = itemMapper.toEntity(itemDto, ownerId);
-        ItemDto createdItem = itemMapper.toDto(itemRepository.save(item));
+        Item item = ItemMapper.toEntity(itemDto, ownerId);
+        ItemDto createdItem = ItemMapper.toDto(itemRepository.save(item));
         log.info("A new item has been created: {}", createdItem);
         return createdItem;
     }
@@ -52,7 +51,7 @@ public class InMemoryItemService implements ItemService {
         Optional.ofNullable(itemDto.getDescription()).ifPresent(existingItem::setDescription);
         Optional.ofNullable(itemDto.getAvailable()).ifPresent(existingItem::setAvailable);
 
-        ItemDto updatedItem = itemMapper.toDto(itemRepository.save(existingItem));
+        ItemDto updatedItem = ItemMapper.toDto(itemRepository.save(existingItem));
         log.info("The item has been updated: {}", updatedItem);
         return updatedItem;
     }
@@ -61,7 +60,7 @@ public class InMemoryItemService implements ItemService {
     public ItemDto getItemById(Long itemId) {
         log.info("Requesting an item by ID: {}", itemId);
         ItemDto item = itemRepository.findById(itemId)
-                .map(itemMapper::toDto)
+                .map(ItemMapper::toDto)
                 .orElseThrow(() -> new NotFoundException("Item not found"));
 
         log.info("Item found: {}", item);
@@ -72,7 +71,7 @@ public class InMemoryItemService implements ItemService {
     public List<ItemDto> getAllUserItems(Long ownerId) {
         log.info("Request all the user's items. Owner's ID: {}", ownerId);
         List<ItemDto> items = itemRepository.findAllByOwnerId(ownerId).stream()
-                .map(itemMapper::toDto)
+                .map(ItemMapper::toDto)
                 .collect(Collectors.toList());
         log.info("Items found {} for user ID: {}", items.size(), ownerId);
         return items;
@@ -86,7 +85,7 @@ public class InMemoryItemService implements ItemService {
             return Collections.emptyList();
         }
         List<ItemDto> results = itemRepository.searchAvailableItems(text).stream()
-                .map(itemMapper::toDto)
+                .map(ItemMapper::toDto)
                 .collect(Collectors.toList());
         log.info("Found {} search results '{}'", results.size(), text);
         return results;
