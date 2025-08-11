@@ -4,7 +4,7 @@ import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.user.User;
 
 @UtilityClass
-public class UserMapper {
+public final class UserMapper {
     public UserDto toDto(User user) {
         return new UserDto(
                 user.getId(),
