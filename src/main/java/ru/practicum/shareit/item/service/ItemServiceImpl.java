@@ -92,7 +92,7 @@ public class ItemServiceImpl implements ItemService {
             return Collections.emptyList();
         }
 
-        List<Item> searchResults = itemRepository.search(text);
+        List<Item> searchResults = itemRepository.searchAvailableItems(text);
         List<ItemDto> resultsDto = searchResults.stream()
                 .map(ItemMapper::toDto)
                 .collect(Collectors.toList());
