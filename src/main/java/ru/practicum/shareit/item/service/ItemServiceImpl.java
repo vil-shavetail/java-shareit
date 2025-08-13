@@ -9,85 +9,95 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
+
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
 
     @Override
     public ItemDto createItem(ItemDto itemDto, Long ownerId) {
-        log.info("Creating a thing. Input data:  {}, ID owner: {}", itemDto, ownerId);
-        if (!userRepository.existsById(ownerId)) {
-            log.warn("An attempt to create a new item by non-existing user with id: {} failed.",  ownerId);
-            throw new NotFoundException("User with id: " + ownerId + "not found");
-        }
-        Item item = ItemMapper.toEntity(itemDto, ownerId);
-        ItemDto createdItem = ItemMapper.toDto(itemRepository.save(item));
-        log.info("A new item has been created: {}", createdItem);
-        return createdItem;
+        log.info("Creating item for user: {}, item data: {}", ownerId, itemDto);
+
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new NotFoundException("User with id: " + ownerId + " not found"));
+
+        Item item = ItemMapper.toEntity(itemDto, owner);
+        Item savedItem = itemRepository.save(item);
+
+        log.info("Item created successfully: {}", savedItem.getId());
+        return ItemMapper.toDto(savedItem);
     }
 
     @Override
     public ItemDto updateItem(Long itemId, ItemDto itemDto, Long ownerId) {
-        log.info("Updating a thing. ID: {}, Data: {}, Owner's ID: {}", itemId, itemDto, ownerId);
-        Item existingItem = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Item not found"));
+        log.info("Updating item: {}, with data: {}, for user: {}", itemId, itemDto, ownerId);
 
-        if (!existingItem.getOwnerId().equals(ownerId)) {
-            log.warn("An attempt to update the item failed. Item ID: {}, User ID: {}", itemId, ownerId);
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Item with id: " + itemId + " not found"));
+
+        if (!item.getOwner().getId().equals(ownerId)) {
+            log.warn("Unauthorized update attempt for item: {}, by user: {}", itemId, ownerId);
             throw new ForbiddenException("Only owner can update item");
         }
 
-        Optional.ofNullable(itemDto.getName()).ifPresent(existingItem::setName);
-        Optional.ofNullable(itemDto.getDescription()).ifPresent(existingItem::setDescription);
-        Optional.ofNullable(itemDto.getAvailable()).ifPresent(existingItem::setAvailable);
+        item.setName(itemDto.getName());
+        item.setDescription(itemDto.getDescription());
+        item.setAvailable(itemDto.getAvailable());
 
-        ItemDto updatedItem = ItemMapper.toDto(itemRepository.save(existingItem));
-        log.info("The item has been updated: {}", updatedItem);
-        return updatedItem;
+        Item updatedItem = itemRepository.save(item);
+        log.info("Item updated successfully: {}", updatedItem.getId());
+        return ItemMapper.toDto(updatedItem);
     }
 
     @Override
     public ItemDto getItemById(Long itemId) {
-        log.info("Requesting an item by ID: {}", itemId);
-        ItemDto item = itemRepository.findById(itemId)
-                .map(ItemMapper::toDto)
-                .orElseThrow(() -> new NotFoundException("Item not found"));
+        log.info("Getting item by id: {}", itemId);
 
-        log.info("Item found: {}", item);
-        return item;
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Item with id: " + itemId + " not found"));
+
+        log.info("Item found: {}", item.getId());
+        return ItemMapper.toDto(item);
     }
 
     @Override
     public List<ItemDto> getAllUserItems(Long ownerId) {
-        log.info("Request all the user's items. Owner's ID: {}", ownerId);
-        List<ItemDto> items = itemRepository.findAllByOwnerId(ownerId).stream()
+        log.info("Getting all items for user: {}", ownerId);
+
+        List<Item> items = itemRepository.findAllByOwnerId(ownerId);
+        List<ItemDto> itemsDto = items.stream()
                 .map(ItemMapper::toDto)
                 .collect(Collectors.toList());
-        log.info("Items found {} for user ID: {}", items.size(), ownerId);
-        return items;
+
+        log.info("Found {} items for user: {}", itemsDto.size(), ownerId);
+        return itemsDto;
     }
 
     @Override
     public List<ItemDto> searchItems(String text) {
-        log.info("Search for items on request: '{}'", text);
+        log.info("Searching items by text: '{}'", text);
+
         if (text.isBlank()) {
-            log.info("Empty search query, we return an empty list");
+            log.info("Empty search query, returning empty list");
             return Collections.emptyList();
         }
-        List<ItemDto> results = itemRepository.searchAvailableItems(text).stream()
+
+        List<Item> searchResults = itemRepository.search(text);
+        List<ItemDto> resultsDto = searchResults.stream()
                 .map(ItemMapper::toDto)
                 .collect(Collectors.toList());
-        log.info("Found {} search results '{}'", results.size(), text);
-        return results;
+
+        log.info("Found {} search results for query: '{}'", resultsDto.size(), text);
+        return resultsDto;
     }
 }
