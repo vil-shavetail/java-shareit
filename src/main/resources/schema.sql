@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     REFERENCES users(id)
     ON DELETE CASCADE,
     CONSTRAINT chk_booking_dates
-    CHECK (start_date < end_date),
+    CHECK (start_date < end_date)
     );
 
 
