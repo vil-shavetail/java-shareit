@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.service;
 
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,9 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentDto createComment(Long itemId, Long authorId, CommentDto commentDto) {
         log.info("Creating comment for item: {}, author: {}", itemId, authorId);
+        if (commentDto.getText() == null || commentDto.getText().isEmpty()) {
+            throw new ValidationException("The text of the comment cannot be empty");
+        }
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Item not found"));

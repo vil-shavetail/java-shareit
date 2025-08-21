@@ -1,41 +1,99 @@
 package ru.practicum.shareit.booking.service;
 
+import jakarta.validation.Valid;
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
+import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.exception.ForbiddenException;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
+    private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
 
     @Override
-    public BookingDto createBooking(Long userId, BookingRequestDto request) {
-        return null;
+    public BookingDto createBooking(Long userId, @Valid BookingRequestDto request) {
+        log.info("Creating booking for user: {}, item: {}", userId, request.getItemId());
+        Item item = itemRepository.findById(request.getItemId())
+                .orElseThrow(() -> new NotFoundException("Item not found"));
+
+        Booking booking = new Booking();
+        booking.setItem(item);
+        booking.setBooker(userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found")));
+        booking.setStart(request.getStart());
+        booking.setEnd(request.getEnd());
+        booking.setStatus(BookingStatus.WAITING);
+
+        Booking savedBooking = bookingRepository.save(booking);
+        log.info("Booking created: {}", savedBooking.getId());
+        return BookingMapper.toDto(savedBooking);
     }
 
     @Override
     public BookingDto updateBookingStatus(Long ownerId, Long bookingId, boolean approved) {
-        return null;
+        log.info("Updating booking status for booking: {}, approved: {}", bookingId, approved);
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NotFoundException("Booking not found"));
+
+        if (!booking.getStatus().equals(BookingStatus.WAITING)) {
+            throw new ValidationException("The booking cannot be confirmed because its status is not WAITING.");
+        }
+        if (!booking.getItem().getOwner().getId().equals(ownerId)) {
+            throw new ValidationException("User is not the owner of the item");
+        }
+
+        booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
+        Booking updatedBooking = bookingRepository.save(booking);
+        return BookingMapper.toDto(updatedBooking);
+
     }
 
     @Override
     public BookingDto getBookingById(Long userId, Long bookingId) {
-        return null;
+        log.info("Getting booking details for user: {}, booking: {}", userId, bookingId);
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NotFoundException("Booking not found"));
+
+        if (!booking.getBooker().getId().equals(userId) &&
+                !booking.getItem().getOwner().getId().equals(userId)) {
+            throw new ValidationException("User is not authorized to view this booking");
+        }
+
+        return BookingMapper.toDto(booking);
     }
 
     @Override
-    public List<BookingDto> getUserBookings(Long userId, BookingStatus status) {
-        return List.of();
+    public List<BookingDto> getUserBookings(Long bookerId, BookingStatus status) {
+        log.info("Getting user bookings for user: {}, status: {}", bookerId, status);
+        List<Booking> bookings = bookingRepository.findByBookerIdAndStatus(bookerId, status);
+        return bookings.stream()
+                .map(BookingMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<BookingDto> getOwnerBookings(Long ownerId, BookingStatus status) {
-        return List.of();
+        log.info("Getting owner bookings for owner: {}, status: {}", ownerId, status);
+        List<Booking> bookings = bookingRepository.findByItemOwnerIdAndStatus(ownerId, status);
+        return bookings.stream()
+                .map(BookingMapper::toDto)
+                .collect(Collectors.toList());
     }
 }
