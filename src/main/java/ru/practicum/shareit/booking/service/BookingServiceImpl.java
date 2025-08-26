@@ -5,6 +5,7 @@ import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -22,12 +23,14 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
 
     @Override
+    @Transactional
     public BookingDto createBooking(Long userId, @Valid BookingRequestDto request) {
         log.info("Creating booking for user: {}, item: {}", userId, request.getItemId());
         Item item = itemRepository.findById(request.getItemId())
@@ -46,6 +49,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public BookingDto updateBookingStatus(Long ownerId, Long bookingId, boolean approved) {
         log.info("Updating booking status for booking: {}, approved: {}", bookingId, approved);
         Booking booking = bookingRepository.findById(bookingId)

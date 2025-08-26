@@ -3,6 +3,7 @@ package ru.practicum.shareit.user.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.DuplicateEmailException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.User;
@@ -16,10 +17,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public UserDto createUser(UserDto userDto) {
         log.info("Creating a user. Input data: {}", userDto);
         User user = UserMapper.toEntity(userDto);
@@ -29,8 +32,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDto updateUser(Long id, UserDto userDto) {
-        log.debug("User update. ID: {}, Input data: {}", id, userDto);
+        log.info("User update. ID: {}, Input data: {}", id, userDto);
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("User with ID {} not found", id);
@@ -42,9 +46,13 @@ public class UserServiceImpl implements UserService {
             log.warn("Trying to use a busy email: {}", userDto.getEmail());
             throw new DuplicateEmailException("Email already in use: " + userDto.getEmail());
         }
+        if (userDto.getName() != null) {
+            existingUser.setName(userDto.getName());
+        }
+        if (userDto.getEmail() != null) {
+            existingUser.setEmail(userDto.getEmail());
+        }
 
-        existingUser.setName(userDto.getName());
-        existingUser.setEmail(userDto.getEmail());
         UserDto updatedUser = UserMapper.toDto(userRepository.save(existingUser));
         log.info("The user has been updated: {}", updatedUser);
         return updatedUser;
@@ -74,6 +82,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(Long id) {
         log.info("Deleting a user with ID: {}", id);
         if (!userRepository.existsById(id)) {
