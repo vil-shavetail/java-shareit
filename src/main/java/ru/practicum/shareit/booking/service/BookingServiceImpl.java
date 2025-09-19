@@ -36,6 +36,10 @@ public class BookingServiceImpl implements BookingService {
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new NotFoundException("Item not found"));
 
+        if (Boolean.FALSE.equals(item.getAvailable())) {
+            throw new ValidationException("Item is unavailable for booking.");
+        }
+
         Booking booking = new Booking();
         booking.setItem(item);
         booking.setBooker(userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found")));
