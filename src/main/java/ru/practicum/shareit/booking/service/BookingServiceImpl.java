@@ -15,6 +15,7 @@ import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
@@ -54,7 +55,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public BookingDto updateBookingStatus(Long ownerId, Long bookingId, boolean approved) {
+    public BookingDto updateBookingStatus(Long bookingId, Long ownerId, boolean approved) {
         log.info("Updating booking status for booking: {}, approved: {}", bookingId, approved);
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
@@ -98,7 +99,9 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getOwnerBookings(Long ownerId, BookingStatus status) {
         log.info("Getting owner bookings for owner: {}, status: {}", ownerId, status);
-        List<Booking> bookings = bookingRepository.findByItemOwnerIdAndStatus(ownerId, status);
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new ValidationException("Can't get all bookings for a non-existent owner with id: " + ownerId + "."));
+        List<Booking> bookings = bookingRepository.findByItemOwnerIdAndStatus(owner.getId(), status);
         return bookings.stream()
                 .map(BookingMapper::toDto)
                 .collect(Collectors.toList());
