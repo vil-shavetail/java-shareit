@@ -19,7 +19,6 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -90,10 +89,18 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getUserBookings(Long bookerId, BookingStatus status) {
         log.info("Getting user bookings for user: {}, status: {}", bookerId, status);
-        List<Booking> bookings = bookingRepository.findByBookerIdAndStatus(bookerId, status);
+        User booker = userRepository.findById(bookerId)
+                .orElseThrow(() -> new ValidationException("Can't get all bookings for a non-existent booker with id: " + bookerId + "."));
+
+        List<Booking> bookings;
+        if(BookingStatus.ALL == status) {
+            bookings = bookingRepository.findByBookerId(booker.getId());
+        } else {
+            bookings = bookingRepository.findByBookerIdAndStatus(booker.getId(), status);
+        }
         return bookings.stream()
                 .map(BookingMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -104,6 +111,6 @@ public class BookingServiceImpl implements BookingService {
         List<Booking> bookings = bookingRepository.findByItemOwnerIdAndStatus(owner.getId(), status);
         return bookings.stream()
                 .map(BookingMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

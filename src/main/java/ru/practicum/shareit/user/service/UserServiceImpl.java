@@ -12,7 +12,6 @@ import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -76,7 +75,7 @@ public class UserServiceImpl implements UserService {
         log.info("Request for all users");
         List<UserDto> users = userRepository.findAll().stream()
                 .map(UserMapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
         log.info("Users found: {}", users.size());
         return users;
     }

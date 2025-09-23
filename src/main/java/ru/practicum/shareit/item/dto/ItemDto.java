@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.practicum.shareit.booking.dto.BookingDto;
+
+import java.util.List;
 
 /**
  * TODO Sprint add-controllers.
@@ -22,4 +25,7 @@ public class ItemDto {
     private Boolean available;
     private Long requestId;
     private Long ownerId;
+    private List<CommentDto> comments;
+    private BookingDto lastBooking;
+    private BookingDto nextBooking;
 }
