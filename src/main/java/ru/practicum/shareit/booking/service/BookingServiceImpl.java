@@ -93,7 +93,7 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new ValidationException("Can't get all bookings for a non-existent booker with id: " + bookerId + "."));
 
         List<Booking> bookings;
-        if(BookingStatus.ALL == status) {
+        if (BookingStatus.ALL == status) {
             bookings = bookingRepository.findByBookerId(booker.getId());
         } else {
             bookings = bookingRepository.findByBookerIdAndStatus(booker.getId(), status);
