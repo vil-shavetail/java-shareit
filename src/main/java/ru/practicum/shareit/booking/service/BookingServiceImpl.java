@@ -18,6 +18,7 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -89,15 +90,33 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getUserBookings(Long bookerId, BookingStatus status) {
         log.info("Getting user bookings for user: {}, status: {}", bookerId, status);
+        LocalDateTime currentDateTime = LocalDateTime.now();
         User booker = userRepository.findById(bookerId)
                 .orElseThrow(() -> new ValidationException("Can't get all bookings for a non-existent booker with id: " + bookerId + "."));
 
-        List<Booking> bookings;
-        if (BookingStatus.ALL == status) {
-            bookings = bookingRepository.findByBookerId(booker.getId());
-        } else {
-            bookings = bookingRepository.findByBookerIdAndStatus(booker.getId(), status);
-        }
+        List<Booking> bookings = switch (status) {
+            case ALL -> bookingRepository.findByBookerIdOrderByStartDesc(booker.getId());
+            case PAST -> bookingRepository.findByBookerIdAndStatusAndEndBeforeOrderByStartDesc(
+                    booker.getId(),
+                    BookingStatus.APPROVED,
+                    currentDateTime);
+            case CURRENT ->
+                    bookingRepository.findActiveBookingsByBooker(
+                            booker.getId(),
+                            BookingStatus.APPROVED,
+                            currentDateTime
+                    );
+            case FUTURE -> bookingRepository.findByBookerIdAndStatusAndStartAfterOrderByStartAsc(
+                    booker.getId(),
+                    BookingStatus.APPROVED,
+                    currentDateTime
+            );
+            case WAITING ->
+                    bookingRepository.findByBookerIdAndStatusOrderByStartDesc(booker.getId(), BookingStatus.WAITING);
+            case REJECTED ->
+                    bookingRepository.findByBookerIdAndStatusOrderByStartDesc(booker.getId(), BookingStatus.REJECTED);
+            case null, default -> bookingRepository.findByBookerIdAndStatusOrderByStartDesc(booker.getId(), status);
+        };
         return bookings.stream()
                 .map(BookingMapper::toDto)
                 .toList();
@@ -106,9 +125,32 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingDto> getOwnerBookings(Long ownerId, BookingStatus status) {
         log.info("Getting owner bookings for owner: {}, status: {}", ownerId, status);
+        LocalDateTime currentDateTime = LocalDateTime.now();
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new ValidationException("Can't get all bookings for a non-existent owner with id: " + ownerId + "."));
-        List<Booking> bookings = bookingRepository.findByItemOwnerIdAndStatus(owner.getId(), status);
+        List<Booking> bookings = switch (status) {
+            case ALL -> bookingRepository.findByItemOwnerIdOrderByStartDesc(owner.getId());
+            case PAST -> bookingRepository.findByItemOwnerIdAndStatusAndEndBeforeOrderByStartDesc(
+                    owner.getId(),
+                    BookingStatus.APPROVED,
+                    currentDateTime);
+            case CURRENT ->
+                    bookingRepository.findActiveBookingsByItemOwner(
+                            owner.getId(),
+                            BookingStatus.APPROVED,
+                            currentDateTime
+                    );
+            case FUTURE -> bookingRepository.findByItemOwnerIdAndStatusAndStartAfterOrderByStartAsc(
+                    owner.getId(),
+                    BookingStatus.APPROVED,
+                    currentDateTime
+            );
+            case WAITING ->
+                    bookingRepository.findByItemOwnerIdAndStatusOrderByStartDesc(owner.getId(), BookingStatus.WAITING);
+            case REJECTED ->
+                    bookingRepository.findByItemOwnerIdAndStatusOrderByStartDesc(owner.getId(), BookingStatus.REJECTED);
+            case null, default -> bookingRepository.findByBookerIdAndStatusOrderByStartDesc(owner.getId(), status);
+        };
         return bookings.stream()
                 .map(BookingMapper::toDto)
                 .toList();

@@ -21,6 +21,14 @@ public final class BookingMapper {
         );
     }
 
+    public BookingRequestDto bookingRequestToDto(@NonNull Booking booking) {
+        return new BookingRequestDto(
+                booking.getId(),
+                booking.getStart(),
+                booking.getEnd()
+        );
+    }
+
     public Booking toEntity(@NonNull BookingDto dto, @NonNull Item item, @NonNull User booker) {
         return new Booking(
                 dto.getId(),

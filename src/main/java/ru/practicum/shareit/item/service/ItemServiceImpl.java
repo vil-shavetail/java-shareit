@@ -6,15 +6,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingStatus;
-import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingMapper;
+import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.CommentMapper;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -82,9 +79,9 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto getItemById(Long itemId) {
         log.info("Getting item by id: {}", itemId);
-        LocalDateTime now = LocalDateTime.now();
-        BookingDto lastBooking = null;
-        BookingDto nextBooking = null;
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        BookingRequestDto lastBooking = null;
+        BookingRequestDto nextBooking = null;
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Item with id: " + itemId + " not found"));
 
@@ -93,16 +90,26 @@ public class ItemServiceImpl implements ItemService {
         List<CommentDto> comments = commentRepository.findAllByItemId(itemId).stream()
                 .map(CommentMapper::toDto)
                 .toList();
-        List<Booking> bookings = bookingRepository.findBookingsByItemId(itemId);
-        for (Booking booking : bookings) {
-            if (booking.getStatus() == BookingStatus.APPROVED) {
-                if (booking.getEnd().isBefore(now) && (lastBooking == null ||
-                            booking.getEnd().isAfter(lastBooking.getEnd()))) {
-                        lastBooking = BookingMapper.toDto(booking);
+        List<Booking> bookings = bookingRepository.findBookingsByItemIdOrderByStartDesc(itemId);
+        if (bookings.size() == 1) {
+            Booking singleBooking = bookings.getFirst();
+            if (singleBooking.getStatus() == BookingStatus.APPROVED) {
+                if (currentDateTime.isAfter(singleBooking.getStart())
+                        && currentDateTime.isBefore(singleBooking.getEnd())) {
+                    return null;
                 }
-                if (booking.getStart().isAfter(now) && (nextBooking == null ||
+            }
+        } else {
+            for (Booking booking : bookings) {
+                if (booking.getStatus() == BookingStatus.APPROVED) {
+                    if (booking.getEnd().isBefore(currentDateTime) && (lastBooking == null ||
+                            booking.getEnd().isAfter(lastBooking.getEnd()))) {
+                        lastBooking = BookingMapper.bookingRequestToDto(booking);
+                    }
+                    if (booking.getStart().isAfter(currentDateTime) && (nextBooking == null ||
                             booking.getStart().isBefore(nextBooking.getStart()))) {
-                        nextBooking = BookingMapper.toDto(booking);
+                        nextBooking = BookingMapper.bookingRequestToDto(booking);
+                    }
                 }
             }
         }

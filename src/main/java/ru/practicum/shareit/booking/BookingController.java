@@ -50,11 +50,10 @@ public class BookingController {
         return bookingService.getUserBookings(userId, status);
     }
 
-    // Получение списка бронирований для вещей пользователя
     @GetMapping("/owner")
     public List<BookingDto> getOwnerBookings(
             @RequestHeader(X_SHARER_USER_ID) Long ownerId,
-            @RequestParam(defaultValue = "ALL") BookingStatus state) {
-        return bookingService.getOwnerBookings(ownerId, state);
+            @RequestParam(defaultValue = "ALL") BookingStatus status) {
+        return bookingService.getOwnerBookings(ownerId, status);
     }
 }
