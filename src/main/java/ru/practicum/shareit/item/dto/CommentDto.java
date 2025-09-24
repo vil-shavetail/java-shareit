@@ -14,7 +14,6 @@ public class CommentDto {
     private Long id;
     @NotBlank(message = "The text of the comment cannot be empty")
     private String text;
-    private Long itemId;
-    private Long authorId;
+    private String authorName;
     private LocalDateTime created;
 }
