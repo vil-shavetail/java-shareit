@@ -27,8 +27,22 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "AND b.start <= :currentDateTime " +
             "AND b.end >= :currentDateTime " +
             "ORDER BY b.start ASC")
-    List<Booking> findActiveBookingsByBooker(
+    List<Booking> findCurrentBookingsByBooker(
             @Param("bookerId") Long bookerId,
+            @Param("status") BookingStatus status,
+            @Param("currentDateTime") LocalDateTime currentDateTime
+    );
+
+    @Query("SELECT b " +
+            "FROM Booking b " +
+            "WHERE b.booker.id = :bookerId " +
+            "AND b.item.id = :itemId " +
+            "AND b.status = :status " +
+            "AND b.start > :currentDateTime " +
+            "ORDER BY b.start ASC")
+    List<Booking> findUpcomingBookingsByBookerAndItem(
+            @Param("bookerId") Long bookerId,
+            @Param("itemId") Long itemId,
             @Param("status") BookingStatus status,
             @Param("currentDateTime") LocalDateTime currentDateTime
     );
@@ -58,7 +72,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "AND b.start <= :currentDateTime " +
             "AND b.end >= :currentDateTime " +
             "ORDER BY b.start ASC")
-    List<Booking> findActiveBookingsByItemOwner(
+    List<Booking> findCurrentBookingsByItemOwner(
             @Param("ownerId") Long ownerId,
             @Param("status") BookingStatus status,
             @Param("currentDateTime") LocalDateTime currentDateTime

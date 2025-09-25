@@ -101,7 +101,7 @@ public class BookingServiceImpl implements BookingService {
                     BookingStatus.APPROVED,
                     currentDateTime);
             case CURRENT ->
-                    bookingRepository.findActiveBookingsByBooker(
+                    bookingRepository.findCurrentBookingsByBooker(
                             booker.getId(),
                             BookingStatus.APPROVED,
                             currentDateTime
@@ -135,7 +135,7 @@ public class BookingServiceImpl implements BookingService {
                     BookingStatus.APPROVED,
                     currentDateTime);
             case CURRENT ->
-                    bookingRepository.findActiveBookingsByItemOwner(
+                    bookingRepository.findCurrentBookingsByItemOwner(
                             owner.getId(),
                             BookingStatus.APPROVED,
                             currentDateTime
