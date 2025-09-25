@@ -47,7 +47,7 @@ public class CommentServiceImpl implements CommentService {
         User author = userRepository.findById(authorId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        List<Booking> upcomingBookings = bookingRepository.findUpcomingBookingsByBookerAndItem(
+        List<Booking> upcomingBookings = bookingRepository.findNotFinishedBookingsByBookerAndItem(
                         authorId,
                         itemId,
                         BookingStatus.APPROVED,

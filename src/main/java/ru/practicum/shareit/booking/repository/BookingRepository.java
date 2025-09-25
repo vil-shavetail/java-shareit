@@ -38,9 +38,9 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "WHERE b.booker.id = :bookerId " +
             "AND b.item.id = :itemId " +
             "AND b.status = :status " +
-            "AND b.start > :currentDateTime " +
+            "AND b.end >= :currentDateTime " +
             "ORDER BY b.start ASC")
-    List<Booking> findUpcomingBookingsByBookerAndItem(
+    List<Booking> findNotFinishedBookingsByBookerAndItem(
             @Param("bookerId") Long bookerId,
             @Param("itemId") Long itemId,
             @Param("status") BookingStatus status,
