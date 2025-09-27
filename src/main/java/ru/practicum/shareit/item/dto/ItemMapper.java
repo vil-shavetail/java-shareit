@@ -7,7 +7,7 @@ import ru.practicum.shareit.user.User;
 @UtilityClass
 public final class ItemMapper {
 
-    public static ItemDto toDto(Item item) {
+    public ItemDto toDto(Item item) {
         return new ItemDto(
                 item.getId(),
                 item.getName(),
@@ -21,7 +21,7 @@ public final class ItemMapper {
         );
     }
 
-    public static Item toEntity(ItemDto itemDto, User owner) {
+    public Item toEntity(ItemDto itemDto, User owner) {
         return new Item(
                 itemDto.getId(),
                 itemDto.getName(),
