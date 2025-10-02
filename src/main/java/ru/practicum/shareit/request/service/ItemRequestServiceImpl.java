@@ -19,7 +19,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     @Override
-    public ItemRequestDto getItemRequestById(Long requestId) {
+    public ItemRequestDto getItemRequestById(Long requestId, Long requesterId) {
         return null;
     }
 
