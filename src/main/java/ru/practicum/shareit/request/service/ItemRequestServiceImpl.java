@@ -12,7 +12,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class ItemRequestServiceImpl implements ItemRequestService{
+public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public ItemRequestDto createRequest(ItemRequestDto itemRequestDto, Long requesterId) {
         return null;
