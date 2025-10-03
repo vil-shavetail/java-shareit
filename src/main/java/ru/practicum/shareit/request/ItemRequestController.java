@@ -1,12 +1,34 @@
 package ru.practicum.shareit.request;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.service.ItemRequestService;
+
+import java.util.List;
 
 /**
  * TODO Sprint add-item-requests.
  */
 @RestController
 @RequestMapping(path = "/requests")
+@RequiredArgsConstructor
 public class ItemRequestController {
+    private final ItemRequestService itemRequestService;
+    public static final String X_SHARER_USER_ID = "X-Sharer-User-Id";
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ItemRequestDto createItemRequest(
+            @RequestHeader(X_SHARER_USER_ID) Long requesterId,
+            @Valid @RequestBody ItemRequestDto itemRequestDto) {
+        return itemRequestService.createRequest(itemRequestDto, requesterId);
+    }
+
+    @GetMapping("/all")
+    public List<ItemRequestDto> getAllItemRequests()  {
+        return itemRequestService.getAllRequests();
+    }
 }
