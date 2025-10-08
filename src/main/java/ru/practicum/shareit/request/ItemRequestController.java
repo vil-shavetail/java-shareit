@@ -27,6 +27,18 @@ public class ItemRequestController {
         return itemRequestService.createRequest(itemRequestDto, requesterId);
     }
 
+    @GetMapping("/{requestId}")
+    public ItemRequestDto getItemRequestById(
+            @PathVariable Long requestId) {
+        return itemRequestService.getItemRequestById(requestId);
+    }
+
+    @GetMapping
+    public List<ItemRequestDto> getAllUserItemRequests(
+            @RequestHeader(X_SHARER_USER_ID) Long requesterId) {
+        return itemRequestService.getAllUserItemRequests(requesterId);
+    }
+
     @GetMapping("/all")
     public List<ItemRequestDto> getAllItemRequests()  {
         return itemRequestService.getAllRequests();

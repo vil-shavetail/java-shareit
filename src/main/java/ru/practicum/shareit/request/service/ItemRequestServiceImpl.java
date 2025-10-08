@@ -6,6 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.dto.ItemRequestAnswerDto;
+import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
@@ -23,6 +26,7 @@ import java.util.List;
 public class ItemRequestServiceImpl implements ItemRequestService {
     private final ItemRequestRepository itemRequestRepository;
     private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
 
     @Override
     @Transactional
@@ -45,13 +49,29 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     @Override
-    public ItemRequestDto getItemRequestById(Long requestId, Long requesterId) {
-        return null;
+    public ItemRequestDto getItemRequestById(Long requestId) {
+        log.info("Getting item request by id: {}", requestId);
+        ItemRequest itemRequest = itemRequestRepository.findById(requestId).
+                orElseThrow(() -> new NotFoundException("Item request with id: " + requestId + " not found"));
+        log.info("Item request found: {}", itemRequest.getId());
+        ItemRequestDto itemRequestDto = ItemRequestMapper.toDto(itemRequest);
+        List<ItemRequestAnswerDto> answers = itemRepository.findAllByRequestId(requestId).stream()
+                .map(ItemMapper::toItemRequestAnswerDto)
+                .toList();
+        itemRequestDto.setItems(answers);
+        return itemRequestDto;
     }
 
     @Override
     public List<ItemRequestDto> getAllUserItemRequests(Long requesterId) {
-        return List.of();
+        log.info("Getting all item requests for user: {}", requesterId);
+        List<ItemRequest> requests = itemRequestRepository.findAllByRequesterId(requesterId);
+        List<ItemRequestDto> requestDto = requests.stream()
+                .map(ItemRequestMapper::toDto)
+                .toList();
+
+        log.info("Found {} items requests for user: {}", requestDto.size(), requesterId);
+        return requestDto;
     }
 
     @Override

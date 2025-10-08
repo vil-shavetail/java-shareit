@@ -21,6 +21,14 @@ public final class ItemMapper {
         );
     }
 
+    public ItemRequestAnswerDto toItemRequestAnswerDto(Item item) {
+        return new ItemRequestAnswerDto(
+                item.getId(),
+                item.getName(),
+                item.getOwner().getId()
+        );
+    }
+
     public Item toEntity(ItemDto itemDto, User owner) {
         return new Item(
                 itemDto.getId(),
