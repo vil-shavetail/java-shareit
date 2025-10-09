@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.dto.ItemRequestAnswerDto;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -17,7 +18,10 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -66,12 +70,25 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     public List<ItemRequestDto> getAllUserItemRequests(Long requesterId) {
         log.info("Getting all item requests for user: {}", requesterId);
         List<ItemRequest> requests = itemRequestRepository.findAllByRequesterId(requesterId);
-        List<ItemRequestDto> requestDto = requests.stream()
-                .map(ItemRequestMapper::toDto)
+        List<Long> requestIds = requests.stream()
+                .map(ItemRequest::getId)
                 .toList();
-
-        log.info("Found {} items requests for user: {}", requestDto.size(), requesterId);
-        return requestDto;
+        List<Item> allItems = itemRepository.findAllByRequestIdIn(requestIds);
+        Map<Long, List<Item>> itemsByRequestId = allItems.stream()
+                .collect(Collectors.groupingBy(Item::getRequestId));
+        List<ItemRequestDto> requestDtos = requests.stream()
+                .map(request -> {
+                    ItemRequestDto dto = ItemRequestMapper.toDto(request);
+                    List<ItemRequestAnswerDto> answers = itemsByRequestId.getOrDefault(request.getId(), Collections.emptyList())
+                            .stream()
+                            .map(ItemMapper::toItemRequestAnswerDto)
+                            .toList();
+                    dto.setItems(answers);
+                    return dto;
+                })
+                .toList();
+        log.info("Found {} items requests for user: {}", requestDtos.size(), requesterId);
+        return requestDtos;
     }
 
     @Override
