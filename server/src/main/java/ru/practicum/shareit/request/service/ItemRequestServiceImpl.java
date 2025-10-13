@@ -55,8 +55,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public ItemRequestDto getItemRequestById(Long requestId) {
         log.info("Getting item request by id: {}", requestId);
-        ItemRequest itemRequest = itemRequestRepository.findById(requestId).
-                orElseThrow(() -> new NotFoundException("Item request with id: " + requestId + " not found"));
+        ItemRequest itemRequest = itemRequestRepository.findById(requestId)
+                .orElseThrow(() -> new NotFoundException("Item request with id: " + requestId + " not found"));
         log.info("Item request found: {}", itemRequest.getId());
         ItemRequestDto itemRequestDto = ItemRequestMapper.toDto(itemRequest);
         List<ItemRequestAnswerDto> answers = itemRepository.findAllByRequestId(requestId).stream()
