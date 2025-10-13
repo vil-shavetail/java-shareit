@@ -32,7 +32,7 @@ public class BookingController {
             @RequestHeader(X_SHARER_USER_ID) Long ownerId,
             @PathVariable Long bookingId,
             @RequestParam boolean approved) {
-        return bookingClient.updateBookingStatus(bookingId, ownerId, approved);
+        return bookingClient.updateBookingStatus(ownerId, bookingId, approved);
     }
 
     @GetMapping("/{bookingId}")

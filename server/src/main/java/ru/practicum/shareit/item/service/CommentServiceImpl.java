@@ -36,6 +36,8 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public CommentDto createComment(Long itemId, Long authorId, CommentDto commentDto) {
         log.info("Creating comment for item: {}, author: {}", itemId, authorId);
+        User author = userRepository.findById(authorId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
         LocalDateTime currentDateTime = LocalDateTime.now();
         if (commentDto.getText() == null || commentDto.getText().isEmpty()) {
             throw new ValidateException("The text of the comment cannot be empty");
@@ -44,8 +46,7 @@ public class CommentServiceImpl implements CommentService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Item not found"));
 
-        User author = userRepository.findById(authorId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+
 
         List<Booking> upcomingBookings = bookingRepository.findNotFinishedBookingsByBookerAndItem(
                         authorId,

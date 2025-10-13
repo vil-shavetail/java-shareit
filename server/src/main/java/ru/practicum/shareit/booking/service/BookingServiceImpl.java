@@ -33,16 +33,17 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingDto createBooking(Long userId, BookingRequestDto request) {
         log.info("Creating booking for user: {}, item: {}", userId, request.getItemId());
+        User booker = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new NotFoundException("Item not found"));
-
         if (Boolean.FALSE.equals(item.getAvailable())) {
             throw new ValidateException("Item is unavailable for booking.");
         }
 
         Booking booking = new Booking();
         booking.setItem(item);
-        booking.setBooker(userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found")));
+        booking.setBooker(booker);
         booking.setStart(request.getStart());
         booking.setEnd(request.getEnd());
         booking.setStatus(BookingStatus.WAITING);
@@ -58,7 +59,6 @@ public class BookingServiceImpl implements BookingService {
         log.info("Updating booking status for booking: {}, approved: {}", bookingId, approved);
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
-
         if (!booking.getStatus().equals(BookingStatus.WAITING)) {
             throw new ValidateException("The booking cannot be confirmed because its status is not WAITING.");
         }
@@ -91,7 +91,7 @@ public class BookingServiceImpl implements BookingService {
         log.info("Getting user bookings for user: {}, status: {}", bookerId, status);
         LocalDateTime currentDateTime = LocalDateTime.now();
         User booker = userRepository.findById(bookerId)
-                .orElseThrow(() -> new ValidateException("Can't get all bookings for a non-existent booker with id: " + bookerId + "."));
+                .orElseThrow(() -> new NotFoundException("Can't get all bookings for a non-existent booker with id: " + bookerId + "."));
 
         List<Booking> bookings = switch (status) {
             case ALL -> bookingRepository.findByBookerIdOrderByStartDesc(booker.getId());
@@ -126,7 +126,7 @@ public class BookingServiceImpl implements BookingService {
         log.info("Getting owner bookings for owner: {}, status: {}", ownerId, status);
         LocalDateTime currentDateTime = LocalDateTime.now();
         User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new ValidateException("Can't get all bookings for a non-existent owner with id: " + ownerId + "."));
+                .orElseThrow(() -> new NotFoundException("Can't get all bookings for a non-existent owner with id: " + ownerId + "."));
         List<Booking> bookings = switch (status) {
             case ALL -> bookingRepository.findByItemOwnerIdOrderByStartDesc(owner.getId());
             case PAST -> bookingRepository.findByItemOwnerIdAndStatusAndEndBeforeOrderByStartDesc(
