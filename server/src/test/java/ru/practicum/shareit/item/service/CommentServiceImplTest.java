@@ -126,4 +126,33 @@ class CommentServiceImplTest {
         CommentDto createdComment = commentService.createComment(itemId, userId, commentDto);
         assertThat(createdComment.getId()).isNotNull();
     }
+
+    @Test
+    void createCommentByAnotherUser() {
+        Long userId = userService.createUser(user1).getId();
+        Long anotherUserId = userService.createUser(user2).getId();
+        Long itemId = itemService.createItem(
+                new ItemDto(null, "Camera", "Digital Camera", true, null, null, null, null, null),
+                userId
+        ).getId();
+        CommentDto commentDto = new CommentDto(
+                null,
+                "Excellent item!",
+                "Jane Doe",
+                LocalDateTime.now()
+        );
+
+        bookingService.createBooking(
+                anotherUserId,
+                new BookingRequestDto(
+                        itemId,
+                        LocalDateTime.now().minusDays(2),
+                        LocalDateTime.now().minusDays(1)
+                )
+        );
+        CommentDto createdComment = commentService.createComment(itemId, anotherUserId, commentDto);
+        assertThat(createdComment.getId()).isNotNull();
+        assertThat(createdComment.getText()).isEqualTo("Excellent item!");
+        assertThat(createdComment.getAuthorName()).isEqualTo("Jane Doe");
+    }
 }
