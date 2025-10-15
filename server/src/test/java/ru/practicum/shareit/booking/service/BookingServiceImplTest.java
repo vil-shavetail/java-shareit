@@ -113,7 +113,7 @@ class BookingServiceImplTest {
                 startDate,
                 endDate
         );
-        BookingDto booking = bookingService.createBooking(userId, request);
+        bookingService.createBooking(userId, request);
         assertThatThrownBy(() ->
                 bookingService.updateBookingStatus(67L, userId, true)
         ).isInstanceOf(NotFoundException.class);
@@ -151,6 +151,7 @@ class BookingServiceImplTest {
                 startDate,
                 endDate
         );
+        bookingService.createBooking(userId, request);
         assertThatThrownBy(() ->
                 bookingService.getBookingById(userId, 654L)
         ).isInstanceOf(NotFoundException.class);
