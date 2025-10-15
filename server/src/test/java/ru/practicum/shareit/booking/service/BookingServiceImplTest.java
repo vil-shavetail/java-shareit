@@ -107,6 +107,32 @@ class BookingServiceImplTest {
     }
 
     @Test
+    void testUpdateBookingStatusByFakeItemId() {
+        BookingRequestDto request = new BookingRequestDto(
+                itemId,
+                startDate,
+                endDate
+        );
+        BookingDto booking = bookingService.createBooking(userId, request);
+        assertThatThrownBy(() ->
+                bookingService.updateBookingStatus(67L, userId, true)
+        ).isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void testUpdateBookingStatusByFakeUser() {
+        BookingRequestDto request = new BookingRequestDto(
+                itemId,
+                startDate,
+                endDate
+        );
+        BookingDto booking = bookingService.createBooking(userId, request);
+        assertThatThrownBy(() ->
+                bookingService.updateBookingStatus(booking.getId(), 678L, true)
+        ).isInstanceOf(ValidateException.class);
+    }
+
+    @Test
     void testGetBookingById() {
         BookingRequestDto request = new BookingRequestDto(
                 itemId,
@@ -116,6 +142,31 @@ class BookingServiceImplTest {
         BookingDto booking = bookingService.createBooking(userId, request);
         BookingDto retrievedBooking = bookingService.getBookingById(userId, booking.getId());
         assertThat(retrievedBooking.getId()).isEqualTo(booking.getId());
+    }
+
+    @Test
+    void testGetBookingByIdByFakeId() {
+        BookingRequestDto request = new BookingRequestDto(
+                itemId,
+                startDate,
+                endDate
+        );
+        assertThatThrownBy(() ->
+                bookingService.getBookingById(userId, 654L)
+        ).isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void testGetBookingByIdByFakeUserId() {
+        BookingRequestDto request = new BookingRequestDto(
+                itemId,
+                startDate,
+                endDate
+        );
+        BookingDto booking = bookingService.createBooking(userId, request);
+        assertThatThrownBy(() ->
+                bookingService.getBookingById(562L, booking.getId())
+        ).isInstanceOf(ValidateException.class);
     }
 
     @Test

@@ -76,6 +76,36 @@ class ItemServiceImplTest {
     }
 
     @Test
+    void testUpdateItemWithNullData() {
+        UserDto existingUser3 = userService.createUser(user3);
+        ItemDto itemDto = new ItemDto(null, "snorkel",
+                "Breathing tube for scuba diving",
+                true,
+                null,
+                null,
+                null,
+                null,
+                null);
+        ItemDto snorkel = itemService.createItem(itemDto, existingUser3.getId());
+        Long itemId = snorkel.getId();
+        ItemDto updatedItemDto = new ItemDto(
+                itemId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+        ItemDto result = itemService.updateItem(itemId, updatedItemDto, existingUser3.getId());
+        assertThat(result.getName()).isEqualTo("snorkel");
+        assertThat(result.getDescription()).isEqualTo("Breathing tube for scuba diving");
+        assertThat(result.getAvailable()).isTrue();
+    }
+
+    @Test
     void testUpdateItemForbidden() {
         UserDto existingUser3 = userService.createUser(user3);
         ItemDto itemDto = new ItemDto(null, "snorkel",
@@ -103,6 +133,36 @@ class ItemServiceImplTest {
         assertThatThrownBy(() ->
                 itemService.updateItem(itemId, updatedItemDto, anotherUser.getId())
         ).isInstanceOf(ForbiddenException.class);
+    }
+
+    @Test
+    void testUpdateItemWithNonExistentItemId() {
+        UserDto existingUser3 = userService.createUser(user3);
+        ItemDto itemDto = new ItemDto(null, "snorkel",
+                "Breathing tube for scuba diving",
+                true,
+                null,
+                null,
+                null,
+                null,
+                null);
+        ItemDto snorkel = itemService.createItem(itemDto, existingUser3.getId());
+        Long itemId = snorkel.getId();
+        ItemDto updatedItemDto = new ItemDto(
+                itemId,
+                "Best snorkel",
+                "Best in the world breathing tube for scuba diving",
+                true,
+                null,
+                1L,
+                null,
+                null,
+                null
+        );
+        UserDto anotherUser = userService.createUser(user2);
+        assertThatThrownBy(() ->
+                itemService.updateItem(564L, updatedItemDto, anotherUser.getId())
+        ).isInstanceOf(NotFoundException.class);
     }
 
     @Test
