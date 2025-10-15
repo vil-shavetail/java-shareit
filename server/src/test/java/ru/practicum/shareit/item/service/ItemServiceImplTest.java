@@ -155,7 +155,7 @@ class ItemServiceImplTest {
                 null,
                 null
         ), user.getId());
-        List<ItemDto> items = itemService.getAllUserItems(user.getId());;
+        List<ItemDto> items = itemService.getAllUserItems(user.getId());
         assertThat(items.get(0).getName()).isIn("Laptop", "Camera");
         assertThat(items.get(1).getName()).isIn("Laptop", "Camera");
     }
