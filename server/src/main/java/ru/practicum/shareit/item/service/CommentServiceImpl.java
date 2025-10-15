@@ -46,8 +46,6 @@ public class CommentServiceImpl implements CommentService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Item not found"));
 
-
-
         List<Booking> upcomingBookings = bookingRepository.findNotFinishedBookingsByBookerAndItem(
                         authorId,
                         itemId,
