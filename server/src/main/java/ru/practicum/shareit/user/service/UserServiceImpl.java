@@ -37,7 +37,7 @@ public class UserServiceImpl implements UserService {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("User with ID {} not found", id);
-                    return new NotFoundException("User with id: " + id + "not found");
+                    return new NotFoundException("User with id: " + id + " not found");
                 });
 
         if (!existingUser.getEmail().equals(userDto.getEmail())
